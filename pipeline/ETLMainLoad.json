@@ -3,8 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "StartSeqenceLoad",
-				"type": "SqlServerStoredProcedure",
+				"name": "Lookup1",
+				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -15,20 +15,45 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "[LOG].[sp_seq_StartSequenceLoad]",
-					"storedProcedureParameters": {
-						"sequenceLoadName": {
-							"value": {
-								"value": "@pipeline().parameters.SequenceLoadName",
-								"type": "Expression"
-							},
-							"type": "String"
-						}
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[LOG].[sp_seq_StartSequenceLoad]",
+						"storedProcedureParameters": {
+							"sequenceLoadName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.SequenceLoadName",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
 					}
-				},
-				"linkedServiceName": {
-					"referenceName": "databgd",
-					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Seqence",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SequenceLoadId",
+					"value": {
+						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadLogId}",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -52,6 +77,14 @@
 			"MaxParallelism": {
 				"type": "int",
 				"defaultValue": 2
+			}
+		},
+		"variables": {
+			"SequenceLoadId": {
+				"type": "String"
+			},
+			"SequenceLoadLogId": {
+				"type": "String"
 			}
 		},
 		"annotations": []
