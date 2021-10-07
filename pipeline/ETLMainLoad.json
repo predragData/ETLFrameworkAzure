@@ -148,6 +148,15 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderStoredProcedureName": "[ETL].[sp_batch_GetBatchToLoad]",
+						"storedProcedureParameters": {
+							"sequenceLoadName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.SequenceLoadName",
+									"type": "Expression"
+								}
+							}
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -169,7 +178,7 @@
 			},
 			"SequenceLoadName": {
 				"type": "string",
-				"defaultValue": "S_STAGE_LOAD"
+				"defaultValue": "S_STAGE_LOAD_G"
 			},
 			"Restart": {
 				"type": "string",
