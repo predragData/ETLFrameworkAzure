@@ -1,0 +1,9 @@
+{
+	"name": "dfdatasrb",
+	"location": "northeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "a9e2063c-db3e-4fbb-9428-550284d60b04",
+		"tenantId": "4a81bd0f-4afb-440b-b429-9c9d6a991f7a"
+	}
+}
