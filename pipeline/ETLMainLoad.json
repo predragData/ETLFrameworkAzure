@@ -165,6 +165,26 @@
 						"type": "DatasetReference"
 					}
 				}
+			},
+			{
+				"name": "GetBatchToLoadValue",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "GetBatchToLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "BatchLoadQueue",
+					"value": {
+						"value": "@array(activity('GetBatchToLoad').output)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
