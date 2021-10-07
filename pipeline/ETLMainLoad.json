@@ -1,0 +1,28 @@
+{
+	"name": "ETLMainLoad",
+	"properties": {
+		"parameters": {
+			"DWHShellSQLServer": {
+				"type": "string",
+				"defaultValue": ".\\"
+			},
+			"DWHShellDB": {
+				"type": "string",
+				"defaultValue": "DWHShell"
+			},
+			"SequenceLoadName": {
+				"type": "string",
+				"defaultValue": "S_STAGE_LOAD"
+			},
+			"Restart": {
+				"type": "string",
+				"defaultValue": "N"
+			},
+			"MaxParallelism": {
+				"type": "int",
+				"defaultValue": 2
+			}
+		},
+		"annotations": []
+	}
+}
