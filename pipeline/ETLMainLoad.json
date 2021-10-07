@@ -51,7 +51,7 @@
 				"typeProperties": {
 					"variableName": "SequenceLoadId",
 					"value": {
-						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadId}",
+						"value": "@{activity('StartSequenceLoad').output.firstRow.SequenceLoadId}",
 						"type": "Expression"
 					}
 				}
@@ -71,7 +71,7 @@
 				"typeProperties": {
 					"variableName": "SequenceLoadLogId",
 					"value": {
-						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadLogId}",
+						"value": "@{activity('StartSequenceLoad').output.firstRow.SequenceLoadLogId}",
 						"type": "Expression"
 					}
 				}
@@ -148,15 +148,6 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderStoredProcedureName": "[ETL].[sp_batch_GetBatchToLoad]",
-						"storedProcedureParameters": {
-							"sequenceLoadName": {
-								"type": "String",
-								"value": {
-									"value": "@pipeline().parameters.SequenceLoadName",
-									"type": "Expression"
-								}
-							}
-						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
