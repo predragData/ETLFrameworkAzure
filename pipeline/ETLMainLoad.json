@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Lookup1",
+				"name": "StartSequenceLoad",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -37,11 +37,11 @@
 				}
 			},
 			{
-				"name": "Seqence",
+				"name": "SeqenceLoadId",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Lookup1",
+						"activity": "StartSequenceLoad",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -51,8 +51,118 @@
 				"typeProperties": {
 					"variableName": "SequenceLoadId",
 					"value": {
-						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadId}\n@{activity('Lookup1').output.firstRow.SequenceLoadLogId}",
+						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadId}",
 						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SeqenceLoadLogId",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "StartSequenceLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SequenceLoadLogId",
+					"value": {
+						"value": "@{activity('Lookup1').output.firstRow.SequenceLoadLogId}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SessionStatusLaoad",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SeqenceLoadLogId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "SeqenceLoadId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[ETL].[sp_etl_SessionStatusLoad]",
+					"storedProcedureParameters": {
+						"restart": {
+							"value": {
+								"value": "@pipeline().parameters.Restart",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"sequenceLoadName": {
+							"value": {
+								"value": "@pipeline().parameters.SequenceLoadName",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "databgd",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "GetBatchToLoad",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "SessionStatusLaoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[ETL].[sp_batch_GetBatchToLoad]",
+						"storedProcedureParameters": {
+							"sequenceLoadName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.SequenceLoadName",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
 					}
 				}
 			}
@@ -85,6 +195,9 @@
 			},
 			"SequenceLoadLogId": {
 				"type": "String"
+			},
+			"BatchLoadQueue": {
+				"type": "Array"
 			}
 		},
 		"annotations": []
