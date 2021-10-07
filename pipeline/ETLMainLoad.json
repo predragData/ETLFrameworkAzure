@@ -178,7 +178,7 @@
 			},
 			"SequenceLoadName": {
 				"type": "string",
-				"defaultValue": "S_STAGE_LOAD_G"
+				"defaultValue": "S_STAGE_LOAD"
 			},
 			"Restart": {
 				"type": "string",
