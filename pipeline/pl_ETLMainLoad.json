@@ -216,7 +216,17 @@
 									"referenceName": "pl_ETLTaskLoad",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"SequenceLoadLogId": {
+										"value": "@variables('SequenceLoadLogId')",
+										"type": "Expression"
+									},
+									"BatchLoadId": {
+										"value": "item()",
+										"type": "Expression"
+									}
+								}
 							}
 						}
 					]
