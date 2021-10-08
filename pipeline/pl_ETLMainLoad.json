@@ -256,14 +256,14 @@
 										"batchLoadId": {
 											"type": "Int32",
 											"value": {
-												"value": "@int(item().value.BatchLoadId)",
+												"value": "@int(item().BatchLoadId)",
 												"type": "Expression"
 											}
 										},
 										"seqenceLoadLogId": {
 											"type": "Int32",
 											"value": {
-												"value": "int(@variables('vSequenceLoadLogId'))",
+												"value": "@int(variables('vSequenceLoadLogId'))",
 												"type": "Expression"
 											}
 										}
@@ -292,7 +292,7 @@
 							"typeProperties": {
 								"variableName": "vBatchLoadLogId",
 								"value": {
-									"value": "@activity('ac_StartBatchLoad').output.firstRow",
+									"value": "@{activity('ac_StartBatchLoad').output.firstRow.BatchLoadLogId}",
 									"type": "Expression"
 								}
 							}
