@@ -263,7 +263,7 @@
 										"seqenceLoadLogId": {
 											"type": "Int32",
 											"value": {
-												"value": "@int(variables('vSequenceLoadLogId'))",
+												"value": "@variables('vSequenceLoadLogId')",
 												"type": "Expression"
 											}
 										}
