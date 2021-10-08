@@ -74,7 +74,126 @@
 						]
 					}
 				],
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"activities": [
+						{
+							"name": "sc_StartTaskLoad",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[LOG].[sp_task_StartTaskLoad]",
+									"storedProcedureParameters": {
+										"batchLoadLogId": {
+											"type": "Int32",
+											"value": {
+												"value": "@int(variables('vBatchLoadLogId'))",
+												"type": "Expression"
+											}
+										},
+										"taskLoadId": {
+											"type": "Int32",
+											"value": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "ac_TaskLoadLogId",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "sc_StartTaskLoad",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "vTaskLoadLogId",
+								"value": {
+									"value": "@{activity('sc_StartTaskLoad').output.firstRow}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ac_EndTaskLoad",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "ac_TaskLoadLogId",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[LOG].[sp_task_EndTaskLoad]",
+								"storedProcedureParameters": {
+									"batchLoadId": {
+										"value": {
+											"value": "@int(pipeline().parameters.BatchLoadId)",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"sequenceLoadId": {
+										"value": {
+											"value": "@int(pipeline().parameters.SequenceLoadId)",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"taskLoadLogId": {
+										"value": {
+											"value": "@int(variables('vTaskLoadLogId'))",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"taskLoadStatus": {
+										"value": "Success",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "databgd",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
@@ -91,6 +210,9 @@
 			},
 			"vTaskLoadQueue": {
 				"type": "Array"
+			},
+			"vTaskLoadLogId": {
+				"type": "String"
 			}
 		},
 		"annotations": []
