@@ -54,7 +54,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "ac_Test",
+						"name": "ac_StartBatchLoad",
 						"type": "Lookup",
 						"dependsOn": [],
 						"policy": {
@@ -68,7 +68,23 @@
 						"typeProperties": {
 							"source": {
 								"type": "AzureSqlSource",
-								"sqlReaderQuery": "select 0",
+								"sqlReaderStoredProcedureName": "[[LOG].[sp_batch_StartBatchLoad]",
+								"storedProcedureParameters": {
+									"batchLoadId": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.BatchLoadId",
+											"type": "Expression"
+										}
+									},
+									"seqenceLoadLogId": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.SequenceLoadLogId",
+											"type": "Expression"
+										}
+									}
+								},
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
@@ -78,16 +94,90 @@
 								"parameters": {}
 							}
 						}
+					},
+					{
+						"name": "ac_TaskLoadId",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "ac_StartBatchLoad",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "BatchLoadLogId",
+							"value": {
+								"value": "@activity('ac_StartBatchLoad').output.firstRow",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "ac_EndBatchLoad",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "ac_TaskLoadId",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[LOG].[sp_batch_EndBatchLoad]",
+							"storedProcedureParameters": {
+								"batchLoadLogId": {
+									"value": {
+										"value": "@int(variables('BatchLoadLogId'))",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"batchLoadStatus": {
+									"value": "Success",
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "databgd",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
+				"parameters": {
+					"SequenceLoadLogId": {
+						"type": "string"
+					},
+					"BatchLoadId": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"BatchLoadLogId": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]"
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
+				"[concat(variables('factoryId'), '/linkedServices/databgd')]"
 			]
 		},
 		{
@@ -284,7 +374,7 @@
 						}
 					},
 					{
-						"name": "ac__ExecuteBatchLoop",
+						"name": "ac_ExecuteBatchLoop",
 						"type": "ForEach",
 						"dependsOn": [
 							{
@@ -313,18 +403,27 @@
 											"type": "PipelineReference"
 										},
 										"waitOnCompletion": true,
-										"parameters": {}
+										"parameters": {
+											"SequenceLoadLogId": {
+												"value": "@variables('SequenceLoadLogId')",
+												"type": "Expression"
+											},
+											"BatchLoadId": {
+												"value": "item()",
+												"type": "Expression"
+											}
+										}
 									}
 								}
 							]
 						}
 					},
 					{
-						"name": "ac_EndSequenceLoad",
+						"name": "ac_EndSequnceLoad",
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "ac__ExecuteBatchLoop",
+								"activity": "ac_ExecuteBatchLoop",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -343,7 +442,7 @@
 							"storedProcedureParameters": {
 								"sequenceLoadLogId": {
 									"value": {
-										"value": "int(variables('SequenceLoadLogId'))",
+										"value": "@int(variables('SequenceLoadLogId'))",
 										"type": "Expression"
 									},
 									"type": "Int32"
@@ -356,7 +455,7 @@
 									"type": "String"
 								},
 								"sequenceLoadStatus": {
-									"value": "\"Succuss\"",
+									"value": "Success",
 									"type": "String"
 								}
 							}
