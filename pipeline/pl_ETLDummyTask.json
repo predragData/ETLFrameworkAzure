@@ -1,0 +1,23 @@
+{
+	"name": "pl_ETLDummyTask",
+	"properties": {
+		"activities": [
+			{
+				"name": "ac_DummyVariable",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vDummyVariable",
+					"value": "ETLFrameworkVariable"
+				}
+			}
+		],
+		"variables": {
+			"vDummyVariable": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

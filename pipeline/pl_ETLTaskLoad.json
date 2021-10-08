@@ -3,18 +3,82 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Set variable1",
+				"name": "ac_TaskLoadQueue",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "ac_GetTaskToLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "Dev",
-					"value": "Test"
+					"variableName": "vTaskLoadQueue",
+					"value": {
+						"value": "@array(activity('ac_GetTaskToLoad').output)",
+						"type": "Expression"
+					}
 				}
+			},
+			{
+				"name": "ac_GetTaskToLoad",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[ETL].[sp_task_GetTaskToLoad]",
+						"storedProcedureParameters": {
+							"batchLoadId": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.BatchLoadId",
+									"type": "Expression"
+								}
+							},
+							"sequenceLoadId": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.SequenceLoadId",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "ac_ExecuteTaskLoop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ac_TaskLoadQueue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": []
 			}
 		],
 		"parameters": {
-			"SequenceLoadLogId": {
+			"SequenceLoadId": {
 				"type": "string"
 			},
 			"BatchLoadId": {
@@ -22,11 +86,11 @@
 			}
 		},
 		"variables": {
-			"BatchLoadLogId": {
+			"vBatchLoadLogId": {
 				"type": "String"
 			},
-			"Dev": {
-				"type": "String"
+			"vTaskLoadQueue": {
+				"type": "Array"
 			}
 		},
 		"annotations": []
