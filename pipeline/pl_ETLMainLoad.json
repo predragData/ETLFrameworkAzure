@@ -188,7 +188,7 @@
 				}
 			},
 			{
-				"name": "ac__ExecuteBatchLoop",
+				"name": "ac_ExecuteBatchLoop",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -227,7 +227,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "ac__ExecuteBatchLoop",
+						"activity": "ac_ExecuteBatchLoop",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -259,7 +259,7 @@
 							"type": "String"
 						},
 						"sequenceLoadStatus": {
-							"value": "\"Success\"",
+							"value": "Success",
 							"type": "String"
 						}
 					}
