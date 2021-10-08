@@ -30,19 +30,19 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_ETLTaskLoad')]",
+			"name": "[concat(parameters('factoryName'), '/pl_ETLDummyTask')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Set variable1",
+						"name": "ac_DummyVariable",
 						"type": "SetVariable",
 						"dependsOn": [],
 						"userProperties": [],
 						"typeProperties": {
-							"variableName": "Dev",
-							"value": "Test"
+							"variableName": "vDummyVariable",
+							"value": "ETLFrameworkVariable"
 						}
 					}
 				],
@@ -50,19 +50,8 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"parameters": {
-					"SequenceLoadLogId": {
-						"type": "string"
-					},
-					"BatchLoadId": {
-						"type": "string"
-					}
-				},
 				"variables": {
-					"BatchLoadLogId": {
-						"type": "String"
-					},
-					"Dev": {
+					"vDummyVariable": {
 						"type": "String"
 					}
 				},
@@ -86,6 +75,265 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/databgd')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_ETLTaskLoad')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ac_TaskLoadQueue",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "ac_GetTaskToLoad",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "vTaskLoadQueue",
+							"value": {
+								"value": "@array(activity('ac_GetTaskToLoad').output)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "ac_GetTaskToLoad",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[ETL].[sp_task_GetTaskToLoad]",
+								"storedProcedureParameters": {
+									"batchLoadId": {
+										"type": "Int32",
+										"value": {
+											"value": "@pipeline().parameters.BatchLoadId",
+											"type": "Expression"
+										}
+									},
+									"sequenceLoadId": {
+										"type": "Int32",
+										"value": {
+											"value": "@pipeline().parameters.SequenceLoadId",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "ac_ExecuteTaskLoop",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ac_TaskLoadQueue",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@array(variables('vTaskLoadQueue'))",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "sc_StartTaskLoad",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderStoredProcedureName": "[[LOG].[sp_task_StartTaskLoad]",
+											"storedProcedureParameters": {
+												"batchLoadLogId": {
+													"type": "Int32",
+													"value": {
+														"value": "@int(variables('vBatchLoadLogId'))",
+														"type": "Expression"
+													}
+												},
+												"taskLoadId": {
+													"type": "Int32",
+													"value": {
+														"value": "@item()",
+														"type": "Expression"
+													}
+												}
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								},
+								{
+									"name": "ac_TaskLoadLogId",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "sc_StartTaskLoad",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "vTaskLoadLogId",
+										"value": {
+											"value": "@{activity('sc_StartTaskLoad').output.firstRow}",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "ac_EndTaskLoad",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ac_TaskExecution",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[LOG].[sp_task_EndTaskLoad]",
+										"storedProcedureParameters": {
+											"batchLoadId": {
+												"value": {
+													"value": "@int(pipeline().parameters.BatchLoadId)",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"sequenceLoadId": {
+												"value": {
+													"value": "@int(pipeline().parameters.SequenceLoadId)",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"taskLoadLogId": {
+												"value": {
+													"value": "@int(variables('vTaskLoadLogId'))",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"taskLoadStatus": {
+												"value": "Success",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "databgd",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ac_TaskExecution",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "ac_TaskLoadLogId",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_ETLDummyTask",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"SequenceLoadId": {
+						"type": "string"
+					},
+					"BatchLoadId": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"vBatchLoadLogId": {
+						"type": "String"
+					},
+					"vTaskLoadQueue": {
+						"type": "Array"
+					},
+					"vTaskLoadLogId": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
+				"[concat(variables('factoryId'), '/linkedServices/databgd')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_ETLDummyTask')]"
 			]
 		},
 		{
@@ -319,12 +567,12 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"SequenceLoadLogId": {
-												"value": "@variables('vSequenceLoadLogId')",
+											"SequenceLoadId": {
+												"value": "@variables('vSequenceLoadId')",
 												"type": "Expression"
 											},
 											"BatchLoadId": {
-												"value": "item()",
+												"value": "int(item().value)",
 												"type": "Expression"
 											}
 										}
