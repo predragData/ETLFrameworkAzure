@@ -54,7 +54,14 @@
 						]
 					}
 				],
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "BatchLoadLogId",
+					"value": {
+						"value": "@activity('ac_StartBatchLoad').output.firstRow",
+						"type": "Expression"
+					}
+				}
 			},
 			{
 				"name": "ac_EndBatchLoad",
