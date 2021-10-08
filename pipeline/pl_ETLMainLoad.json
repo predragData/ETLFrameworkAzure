@@ -230,7 +230,7 @@
 										"type": "Expression"
 									},
 									"BatchLoadId": {
-										"value": "item().value",
+										"value": "int(item().value)",
 										"type": "Expression"
 									}
 								}
