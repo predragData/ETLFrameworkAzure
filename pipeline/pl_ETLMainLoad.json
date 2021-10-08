@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "StartSequenceLoad",
+				"name": "ac_StartSequenceLoad",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -37,11 +37,11 @@
 				}
 			},
 			{
-				"name": "SeqenceLoadId",
+				"name": "ac_SeqenceLoadId",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "StartSequenceLoad",
+						"activity": "ac_StartSequenceLoad",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -51,17 +51,17 @@
 				"typeProperties": {
 					"variableName": "SequenceLoadId",
 					"value": {
-						"value": "@{activity('StartSequenceLoad').output.firstRow.SequenceLoadId}",
+						"value": "@{activity('ac_StartSequenceLoad').output.firstRow.SequenceLoadId}",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "SeqenceLoadLogId",
+				"name": "ac_SeqenceLoadLogId",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "StartSequenceLoad",
+						"activity": "ac_StartSequenceLoad",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -71,23 +71,23 @@
 				"typeProperties": {
 					"variableName": "SequenceLoadLogId",
 					"value": {
-						"value": "@{activity('StartSequenceLoad').output.firstRow.SequenceLoadLogId}",
+						"value": "@{activity('ac_StartSequenceLoad').output.firstRow.SequenceLoadLogId}",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "SessionStatusLaoad",
+				"name": "ac_SessionStatusLaoad",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "SeqenceLoadLogId",
+						"activity": "ac_SeqenceLoadLogId",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					},
 					{
-						"activity": "SeqenceLoadId",
+						"activity": "ac_SeqenceLoadId",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -126,11 +126,11 @@
 				}
 			},
 			{
-				"name": "GetBatchToLoad",
+				"name": "ac_GetBatchToLoad",
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "SessionStatusLaoad",
+						"activity": "ac_SessionStatusLaoad",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -168,11 +168,11 @@
 				}
 			},
 			{
-				"name": "GetBatchToLoadValue",
+				"name": "ac_GetBatchToLoadValue",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "GetBatchToLoad",
+						"activity": "ac_GetBatchToLoad",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -182,17 +182,17 @@
 				"typeProperties": {
 					"variableName": "BatchLoadQueue",
 					"value": {
-						"value": "@array(activity('GetBatchToLoad').output.value)",
+						"value": "@array(activity('ac_GetBatchToLoad').output.value)",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "pl_ExecuteBatchLoop",
+				"name": "ac__ExecuteBatchLoop",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "GetBatchToLoadValue",
+						"activity": "ac_GetBatchToLoadValue",
 						"dependencyConditions": [
 							"Succeeded"
 						]
