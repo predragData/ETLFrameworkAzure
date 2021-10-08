@@ -49,7 +49,7 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "SequenceLoadId",
+					"variableName": "vSequenceLoadId",
 					"value": {
 						"value": "@{activity('ac_StartSequenceLoad').output.firstRow.SequenceLoadId}",
 						"type": "Expression"
@@ -69,7 +69,7 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "SequenceLoadLogId",
+					"variableName": "vSequenceLoadLogId",
 					"value": {
 						"value": "@{activity('ac_StartSequenceLoad').output.firstRow.SequenceLoadLogId}",
 						"type": "Expression"
@@ -180,7 +180,7 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "BatchLoadQueue",
+					"variableName": "vBatchLoadQueue",
 					"value": {
 						"value": "@array(activity('ac_GetBatchToLoad').output.value)",
 						"type": "Expression"
@@ -201,7 +201,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@variables('BatchLoadQueue')",
+						"value": "@variables('vBatchLoadQueue')",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -226,7 +226,7 @@
 								"waitOnCompletion": true,
 								"parameters": {
 									"SequenceLoadLogId": {
-										"value": "@variables('SequenceLoadLogId')",
+										"value": "@variables('vSequenceLoadLogId')",
 										"type": "Expression"
 									},
 									"BatchLoadId": {
@@ -256,14 +256,14 @@
 										"batchLoadId": {
 											"type": "Int32",
 											"value": {
-												"value": "@int(item())",
+												"value": "item()",
 												"type": "Expression"
 											}
 										},
 										"seqenceLoadLogId": {
 											"type": "Int32",
 											"value": {
-												"value": "@int(variables('SequenceLoadLogId'))",
+												"value": "@int(variables('vSequenceLoadLogId'))",
 												"type": "Expression"
 											}
 										}
@@ -290,7 +290,7 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
-								"variableName": "BatchLoadLogId",
+								"variableName": "vBatchLoadLogId",
 								"value": {
 									"value": "@activity('ac_StartBatchLoad').output.firstRow",
 									"type": "Expression"
@@ -321,7 +321,7 @@
 								"storedProcedureParameters": {
 									"batchLoadLogId": {
 										"value": {
-											"value": "@int(variables('BatchLoadLogId'))",
+											"value": "@int(variables('vBatchLoadLogId'))",
 											"type": "Expression"
 										},
 										"type": "Int32"
@@ -411,16 +411,16 @@
 			}
 		},
 		"variables": {
-			"SequenceLoadId": {
+			"vSequenceLoadId": {
 				"type": "String"
 			},
-			"SequenceLoadLogId": {
+			"vSequenceLoadLogId": {
 				"type": "String"
 			},
-			"BatchLoadQueue": {
+			"vBatchLoadQueue": {
 				"type": "Array"
 			},
-			"BatchLoadLogId": {
+			"vBatchLoadLogId": {
 				"type": "String"
 			}
 		},
