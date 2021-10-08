@@ -256,7 +256,7 @@
 										"batchLoadId": {
 											"type": "Int32",
 											"value": {
-												"value": "item()",
+												"value": "item().value.BatchLoadId",
 												"type": "Expression"
 											}
 										},
