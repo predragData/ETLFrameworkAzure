@@ -201,7 +201,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('GetBatchToLoad').output.value.BatchLoadId",
+						"value": "@activity('GetBatchToLoad').output.value[0]",
 						"type": "Expression"
 					},
 					"isSequential": true,
