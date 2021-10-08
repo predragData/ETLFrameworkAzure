@@ -186,6 +186,41 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "pl_ExecuteBatchLoop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetBatchToLoadValue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetBatchToLoad').output.value.BatchLoadId",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "pl_TaskLoad",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_ETLTaskLoad",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
