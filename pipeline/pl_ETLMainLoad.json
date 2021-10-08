@@ -221,6 +221,53 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "ac_EndSequnceLoad",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ac__ExecuteBatchLoop",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[LOG].[sp_seq_EndSequenceLoad]",
+					"storedProcedureParameters": {
+						"sequenceLoadLogId": {
+							"value": {
+								"value": "@int(variables('SequenceLoadLogId'))",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"sequenceLoadName": {
+							"value": {
+								"value": "@pipeline().parameters.SequenceLoadName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"sequenceLoadStatus": {
+							"value": "\"Success\"",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "databgd",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"parameters": {
