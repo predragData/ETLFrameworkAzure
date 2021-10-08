@@ -254,16 +254,16 @@
 									"sqlReaderStoredProcedureName": "[LOG].[sp_batch_StartBatchLoad]",
 									"storedProcedureParameters": {
 										"batchLoadId": {
-											"type": "String",
+											"type": "Int32",
 											"value": {
-												"value": "item()",
+												"value": "@int(item())",
 												"type": "Expression"
 											}
 										},
 										"seqenceLoadLogId": {
-											"type": "String",
+											"type": "Int32",
 											"value": {
-												"value": "@variables('SequenceLoadLogId')",
+												"value": "@int(variables('SequenceLoadLogId'))",
 												"type": "Expression"
 											}
 										}
