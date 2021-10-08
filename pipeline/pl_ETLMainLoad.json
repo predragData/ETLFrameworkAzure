@@ -256,14 +256,14 @@
 										"batchLoadId": {
 											"type": "Int32",
 											"value": {
-												"value": "item().value.BatchLoadId",
+												"value": "@int(item().value.BatchLoadId)",
 												"type": "Expression"
 											}
 										},
 										"seqenceLoadLogId": {
 											"type": "Int32",
 											"value": {
-												"value": "@variables('vSequenceLoadLogId')",
+												"value": "int(@variables('vSequenceLoadLogId'))",
 												"type": "Expression"
 											}
 										}
@@ -364,7 +364,7 @@
 					"storedProcedureParameters": {
 						"sequenceLoadLogId": {
 							"value": {
-								"value": "@int(variables('SequenceLoadLogId'))",
+								"value": "@int(variables('vSequenceLoadLogId'))",
 								"type": "Expression"
 							},
 							"type": "Int32"
