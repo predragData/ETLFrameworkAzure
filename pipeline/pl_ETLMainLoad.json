@@ -209,7 +209,14 @@
 						{
 							"name": "pl_TaskLoad",
 							"type": "ExecutePipeline",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "ac_BatchLoadLogId",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
@@ -227,6 +234,107 @@
 										"type": "Expression"
 									}
 								}
+							}
+						},
+						{
+							"name": "ac_StartBatchLoad",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderStoredProcedureName": "[LOG].[sp_batch_StartBatchLoad]",
+									"storedProcedureParameters": {
+										"batchLoadId": {
+											"type": "String",
+											"value": {
+												"value": "item()",
+												"type": "Expression"
+											}
+										},
+										"seqenceLoadLogId": {
+											"type": "String",
+											"value": {
+												"value": "@variables('SequenceLoadLogId')",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "ac_BatchLoadLogId",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "ac_StartBatchLoad",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "BatchLoadLogId",
+								"value": {
+									"value": "@activity('ac_StartBatchLoad').output.firstRow",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ac_EndBatchLoad",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "pl_TaskLoad",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[LOG].[sp_batch_EndBatchLoad]",
+								"storedProcedureParameters": {
+									"batchLoadLogId": {
+										"value": {
+											"value": "@int(variables('BatchLoadLogId'))",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"batchLoadStatus": {
+										"value": "Success",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "databgd",
+								"type": "LinkedServiceReference"
 							}
 						}
 					]
@@ -311,6 +419,9 @@
 			},
 			"BatchLoadQueue": {
 				"type": "Array"
+			},
+			"BatchLoadLogId": {
+				"type": "String"
 			}
 		},
 		"annotations": []
