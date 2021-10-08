@@ -76,6 +76,11 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"items": {
+						"value": "@array(variables('vTaskLoadQueue'))",
+						"type": "Expression"
+					},
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "sc_StartTaskLoad",
@@ -143,7 +148,7 @@
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "ac_TaskLoadLogId",
+									"activity": "ac_TaskExecution",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -190,6 +195,26 @@
 							"linkedServiceName": {
 								"referenceName": "databgd",
 								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "ac_TaskExecution",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "ac_TaskLoadLogId",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_ETLDummyTask",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
 							}
 						}
 					]
